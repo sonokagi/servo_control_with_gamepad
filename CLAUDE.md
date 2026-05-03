@@ -88,16 +88,16 @@ servo_control_with_gamepad/
 `machine.Timer`（20ms 周期）の割り込みでサーボの `update()` を呼ぶ方式。  
 `reference/multi_servo.py` の `Servo` / `ToggleLed` クラスをそのまま流用する。
 
-### HID レポート構造（サンプルコードより推定・Phase 3 で実機確認要）
+### HID レポート構造（実機確認済み）
 
 ```
-Byte 0 : LX axis  (0〜255, 中央=128)
-Byte 1 : LY axis  (0〜255, 中央=128)
-Byte 2 : RX axis  (0〜255, 中央=128)
-Byte 3 : RY axis  (0〜255, 中央=128)
-Byte 4 : D-pad
-Byte 5 : ボタン下位 (L=bit6, R=bit7, B=bit1)
-Byte 6 : ボタン上位
+Byte 0 : LX axis  (0〜255, 中立=128)
+Byte 1 : LY axis  (0〜255, 中立=128)
+Byte 2 : RX axis  (0〜255, 中立=128)  ※ 今回未使用
+Byte 3 : RY axis  (0〜255, 中立=128)
+Byte 4 : D-pad    (未操作=0xFF, 反転論理)  ※ 今回未使用
+Byte 5 : ボタン下位  B=bit1(0x02)  L=bit6(0x40)  R=bit7(0x80)
+Byte 6 : ボタン上位  ※ 今回未使用
 ```
 
 ### スティック → サーボ マッピング
