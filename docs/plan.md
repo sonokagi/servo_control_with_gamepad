@@ -6,7 +6,7 @@
 | ----------- | --------------------------------- | ------------------------------------------ | --------- |
 | **Phase 0** | 開発環境セットアップ・Pico W 準備 | Thonny で Hello World が動く               | ✅ 完了   |
 | **Phase 1** | サンプルコード参照                | サンプルをダウンロードして内容を理解       | ✅ 完了   |
-| **Phase 2** | BLE スキャン・デバイス確認        | COWBOX T-12 が Pico W から検出できる       | 🔲 未着手 |
+| **Phase 2** | BLE スキャン・デバイス確認        | COWBOX T-12 が Pico W から検出できる       | ✅ 完了   |
 | **Phase 3** | HID レポート実機確認              | 各軸・ボタンのバイト位置が実機で確認できる | 🔲 未着手 |
 | **Phase 4** | servo.py 作成                     | サーボが単体で動作確認できる               | 🔲 未着手 |
 | **Phase 5** | main.py 作成（BLE + サーボ統合）  | ゲームパッドでサーボが動く                 | 🔲 未着手 |
@@ -100,31 +100,24 @@ Byte 6 : ボタン上位 byte
 
 ---
 
-### Phase 2: BLE スキャン・デバイス確認
+### Phase 2: BLE スキャン・デバイス確認 ✅
 
 COWBOX T-12 のペアリングモードへの移行: **X ボタン + HOME ボタンを長押し**
 
-`bletest.py` を修正して Pico W で実行し、以下を確認・記録する：
+`scan.py` を Pico W で実行（使い方・出力例・トラブルシュートは `scan.py` 冒頭コメント参照）。
 
-1. COWBOX T-12 の BLE アドバタイジング名（デバイス名）
-2. BLE アドレス（MAC アドレス）→ `main.py` での接続先として使用
+確認済みデバイス情報：
 
-```python
-# bletest.py の修正箇所（先頭の無限ループを削除）
-import machine, utime, bluetooth, blegamepad
+| 項目                   | 値                    |
+| ---------------------- | --------------------- |
+| BLE アドバタイジング名 | `ZM T-12`             |
+| MAC アドレス           | `03:12:08:20:34:12`   |
+| アドレスタイプ         | `0`                   |
+| RSSI                   | `-48 dBm`             |
 
-led = machine.Pin('LED', machine.Pin.OUT)
-for _ in range(6):          # 3回点滅して開始を知らせる
-    led.toggle()
-    utime.sleep(0.25)
+> ※ デバイス名は "COWBOX T-12" ではなく **"ZM T-12"** として認識された。
 
-ble = bluetooth.BLE()
-pad = blegamepad.gamepad(ble)
-pad.scan()
-# ...以降はそのまま
-```
-
-**確認後、仕様疑問点 #4・#5 を解消する。**
+**仕様疑問点 #4・#5 を解消。**
 
 ---
 
@@ -361,8 +354,8 @@ normalized = (raw - 128) / 128.0   # -1.0 〜 +1.0 (近似)
 | 1   | COWBOX T-12 の HID レポート構造（各バイトが何の軸/ボタンか） | サンプルより推定済み → 実機確認要 | Phase 3 でデバッグ print     |
 | 2   | スティック値の範囲                                           | 0〜255 (中央=128) と推定          | Phase 3 で確認               |
 | 3   | L / R / B ボタンのビット位置                                 | サンプルより推定済み → 実機確認要 | Phase 3 で確認               |
-| 4   | BLE サービス UUID / Input Report Characteristic UUID         | 未確認                            | Phase 2 でスキャン時に列挙   |
-| 5   | Pico W から見たデバイス名（BLE アドバタイジング名）          | 未確認                            | Phase 2 でスキャン時に print |
+| 4   | BLE サービス UUID / Input Report Characteristic UUID         | ✅ 接続後に自動列挙（blegamepad.py が処理） | -                       |
+| 5   | Pico W から見たデバイス名（BLE アドバタイジング名）          | ✅ **ZM T-12**（addr=03:12:08:20:34:12, type=0） | -                |
 
 ### 【設計判断が必要】機能仕様
 
