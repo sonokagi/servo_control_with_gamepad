@@ -44,7 +44,6 @@ _SERVO_PARAMS = [
 # ===== 制御パラメータ =====
 
 CMD_THRESH = 0.375  # 不感帯（1/4 + 1/8、旧実装から継承）
-SCALE      = 1.25   # スティック最大値 0.8 を 1.0 に正規化 (= 1/0.8)
 
 # HID Notify 1回ごとの最大 Duty 変化量 [us]
 # 旧実装 (Processing 60fps) の DUTY_CHANGE_PAR_FRAME を継承。Phase 6 で要調整。
@@ -160,11 +159,10 @@ def _update_axis(idx, normalized):
     不感帯 CMD_THRESH 以内は無視。超えた分に比例して Duty を変化させる。
     旧実装 (Processing manualOperation) と同アルゴリズム。
     """
-    command = normalized * SCALE
-    if command < -CMD_THRESH:
-        delta = DUTY_STEP[idx] * (command + CMD_THRESH) / (1.0 - CMD_THRESH)
-    elif command > CMD_THRESH:
-        delta = DUTY_STEP[idx] * (command - CMD_THRESH) / (1.0 - CMD_THRESH)
+    if normalized < -CMD_THRESH:
+        delta = DUTY_STEP[idx] * (normalized + CMD_THRESH) / (1.0 - CMD_THRESH)
+    elif normalized > CMD_THRESH:
+        delta = DUTY_STEP[idx] * (normalized - CMD_THRESH) / (1.0 - CMD_THRESH)
     else:
         return
 
