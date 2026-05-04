@@ -46,7 +46,7 @@ _SERVO_PARAMS = [
 CMD_THRESH = 0.375  # 不感帯（1/4 + 1/8、旧実装から継承）
 
 # HID Notify 1回ごとの最大 Duty 変化量 [us]
-# 旧実装 (Processing 60fps) の DUTY_CHANGE_PAR_FRAME を継承。Phase 6 で要調整。
+# 旧実装 (Processing 60fps) の DUTY_CHANGE_PAR_FRAME を継承。ZM T-12 は約 30Hz だが実機で違和感なし。
 DUTY_STEP = [10, 6, 7, 30]  # [Rotate, Shoulder, Elbow, Hand]
 
 _BTN_B = const(0x02)  # Byte5 bit1
