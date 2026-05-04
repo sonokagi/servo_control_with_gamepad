@@ -2,11 +2,11 @@
 BLE ゲームパッド (ZM T-12) + 4ch サーボ制御
 
 操作:
-  左スティック LX  → 旋回 (Rotate,   GP14)  ※反転
+  左スティック LX  → 旋回 (Rotate,   GP14)
   左スティック LY  → 肘   (Elbow,    GP17)
   右スティック RY  → 肩   (Shoulder, GP15)
-  L ボタン         → 手首 (Hand,     GP16) 閉じる
-  R ボタン         → 手首 (Hand,     GP16) 開く
+  L ボタン         → 手首 (Hand,     GP16) 左回転
+  R ボタン         → 手首 (Hand,     GP16) 右回転
   B ボタン         → 全サーボ 初期位置リセット
 
 LED (GP18):
@@ -134,11 +134,11 @@ def _on_notify(state):
 
     btn = state[5]
 
-    # B ボタン: 全サーボを初期位置にリセット
+    # B ボタン: 全サーボを初期位置にリセット（滑らか移動）
     if btn & _BTN_B:
         for i, s in enumerate(servos):
-            s.reset()
-            _cmd[i] = float(s.initial_us)
+            _cmd[i] = s.initial_us
+            s.set_duty(int(_cmd[i]))
         return
 
     # スティック → サーボ軸マッピング
