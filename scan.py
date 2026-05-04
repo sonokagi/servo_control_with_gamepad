@@ -42,9 +42,9 @@ from machine import Pin
 from micropython import const
 
 _IRQ_SCAN_RESULT = const(5)
-_IRQ_SCAN_DONE   = const(6)
+_IRQ_SCAN_DONE = const(6)
 
-_ADV_TYPE_NAME       = const(0x09)
+_ADV_TYPE_NAME = const(0x09)
 _ADV_TYPE_SHORT_NAME = const(0x08)
 
 SCAN_DURATION_MS = 10000  # スキャン時間（ms）
@@ -60,13 +60,14 @@ def _decode_field(payload, adv_type):
 
 
 def _decode_name(adv_data):
-    raw = _decode_field(adv_data, _ADV_TYPE_NAME) or \
-          _decode_field(adv_data, _ADV_TYPE_SHORT_NAME)
-    return str(raw, 'utf-8') if raw else ''
+    raw = _decode_field(adv_data, _ADV_TYPE_NAME) or _decode_field(
+        adv_data, _ADV_TYPE_SHORT_NAME
+    )
+    return str(raw, "utf-8") if raw else ""
 
 
 def _addr_str(addr):
-    return ':'.join('{:02X}'.format(b) for b in addr)
+    return ":".join("{:02X}".format(b) for b in addr)
 
 
 # アドレス文字列 → (addr_type, name, rssi) の辞書（重複除去用）
@@ -80,16 +81,19 @@ def _irq(event, data):
         if key not in _found:
             name = _decode_name(bytes(adv_data))
             _found[key] = (addr_type, name, rssi)
-            print('  {} | type={} | rssi={:4d} | {}'.format(
-                key, addr_type, rssi, name if name else '(no name)'))
+            print(
+                "  {} | type={} | rssi={:4d} | {}".format(
+                    key, addr_type, rssi, name if name else "(no name)"
+                )
+            )
 
     elif event == _IRQ_SCAN_DONE:
-        print('scan done.')
+        print("scan done.")
 
 
 # ----- メイン -----
 
-led = Pin('LED', Pin.OUT)
+led = Pin("LED", Pin.OUT)
 
 # 3回点滅してスキャン開始を通知
 for _ in range(6):
@@ -97,8 +101,8 @@ for _ in range(6):
     utime.sleep_ms(200)
 led.value(1)
 
-print('--- BLE scan start ({} sec) ---'.format(SCAN_DURATION_MS // 1000))
-print('Put COWBOX T-12 into pairing mode: hold X + HOME')
+print("--- BLE scan start ({} sec) ---".format(SCAN_DURATION_MS // 1000))
+print("Put COWBOX T-12 into pairing mode: hold X + HOME")
 print()
 
 ble = bluetooth.BLE()
@@ -111,11 +115,14 @@ utime.sleep_ms(SCAN_DURATION_MS + 500)
 led.value(0)
 
 print()
-print('=== Result: {} device(s) found ==='.format(len(_found)))
+print("=== Result: {} device(s) found ===".format(len(_found)))
 for addr, (addr_type, name, rssi) in _found.items():
-    marker = ' <<<' if name else ''
-    print('  Addr={} | type={} | rssi={:4d} | {}{}'.format(
-        addr, addr_type, rssi, name if name else '(no name)', marker))
+    marker = " <<<" if name else ""
+    print(
+        "  Addr={} | type={} | rssi={:4d} | {}{}".format(
+            addr, addr_type, rssi, name if name else "(no name)", marker
+        )
+    )
 
 print()
 print('Record "Addr" and "type" for Phase 3 connection.')

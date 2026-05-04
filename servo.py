@@ -11,12 +11,12 @@ class Servo:
     PWM_FREQ = 50  # 50Hz = 20ms 周期
 
     def __init__(self, pin, initial_duty_us, min_duty_us, max_duty_us, speed_us):
-        self._pwm       = PWM(pin)
-        self.min_us     = min_duty_us
-        self.max_us     = max_duty_us
-        self._speed_us  = speed_us  # 1 周期 (20ms) あたりの最大変化量
-        self._cmd_us    = initial_duty_us
-        self._out_us    = initial_duty_us
+        self._pwm = PWM(pin)
+        self.min_us = min_duty_us
+        self.max_us = max_duty_us
+        self._speed_us = speed_us  # 1 周期 (20ms) あたりの最大変化量
+        self._cmd_us = initial_duty_us
+        self._out_us = initial_duty_us
         self.initial_us = initial_duty_us  # reset() の参照用
         self._pwm.freq(Servo.PWM_FREQ)
         self.update()
@@ -53,9 +53,9 @@ class ToggleLed:
     """
 
     def __init__(self, pin_no, period):
-        self._pin    = Pin(pin_no, Pin.OUT)
+        self._pin = Pin(pin_no, Pin.OUT)
         self._period = period
-        self._count  = 0
+        self._count = 0
 
     def update(self):
         self._count += 1

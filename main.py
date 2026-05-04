@@ -22,23 +22,23 @@ import servo
 
 # ===== BLE 設定 =====
 
-_IRQ_PERIPHERAL_CONNECT          = const(7)
-_IRQ_PERIPHERAL_DISCONNECT       = const(8)
-_IRQ_GATTC_SERVICE_RESULT        = const(9)
-_IRQ_GATTC_SERVICE_DONE          = const(10)
-_IRQ_GATTC_CHARACTERISTIC_DONE   = const(12)
-_IRQ_GATTC_NOTIFY                = const(18)
+_IRQ_PERIPHERAL_CONNECT = const(7)
+_IRQ_PERIPHERAL_DISCONNECT = const(8)
+_IRQ_GATTC_SERVICE_RESULT = const(9)
+_IRQ_GATTC_SERVICE_DONE = const(10)
+_IRQ_GATTC_CHARACTERISTIC_DONE = const(12)
+_IRQ_GATTC_NOTIFY = const(18)
 
-TARGET_ADDR      = bytes([0x03, 0x12, 0x08, 0x20, 0x34, 0x12])  # ZM T-12
+TARGET_ADDR = bytes([0x03, 0x12, 0x08, 0x20, 0x34, 0x12])  # ZM T-12
 TARGET_ADDR_TYPE = const(0)
 
 # ===== サーボ設定 =====
 #               pin       ini   min   max  speed
 _SERVO_PARAMS = [
-    (Pin(14), 1520,  620, 2400, 12),  # Rotate   (旋回)
-    (Pin(15), 1540,  920, 2020,  9),  # Shoulder (肩)
-    (Pin(17), 1490,  820, 2020,  9),  # Elbow    (肘)
-    (Pin(16), 1600,  750, 2450, 36),  # Hand     (手首)
+    (Pin(14), 1520, 620, 2400, 12),  # Rotate   (旋回)
+    (Pin(15), 1540, 920, 2020, 9),  # Shoulder (肩)
+    (Pin(17), 1490, 820, 2020, 9),  # Elbow    (肘)
+    (Pin(16), 1600, 750, 2450, 36),  # Hand     (手首)
 ]
 
 # ===== 制御パラメータ =====
@@ -56,18 +56,19 @@ _BTN_R = const(0x80)  # Byte5 bit7
 # ===== 初期化 =====
 
 servos = [servo.Servo(*p) for p in _SERVO_PARAMS]
-led    = servo.ToggleLed(18, 5)  # 5周期=100ms トグル（高速点滅）
+led = servo.ToggleLed(18, 5)  # 5周期=100ms トグル（高速点滅）
 
 _cmd = [float(s.initial_us) for s in servos]  # 指令 Duty（float で保持）
 
-_conn_handle     = None
-_connected       = False
+_conn_handle = None
+_connected = False
 _needs_reconnect = False
-_services        = []
-_service_idx     = 0
+_services = []
+_service_idx = 0
 
 
 # ===== Timer コールバック（20ms 周期・割り込み）=====
+
 
 def _timer_cb(t):
     for s in servos:
@@ -78,11 +79,12 @@ def _timer_cb(t):
 
 # ===== BLE 接続 =====
 
+
 def _connect():
     global _services, _service_idx
-    _services    = []
+    _services = []
     _service_idx = 0
-    print('Connecting to ZM T-12...')
+    print("Connecting to ZM T-12...")
     ble.gap_connect(TARGET_ADDR_TYPE, TARGET_ADDR)
 
 
@@ -98,16 +100,16 @@ def _irq(event, data):
     if event == _IRQ_PERIPHERAL_CONNECT:
         conn_handle, _, _ = data
         _conn_handle = conn_handle
-        _connected   = True
+        _connected = True
         led.on()
-        print('Connected.')
+        print("Connected.")
         ble.gattc_discover_services(_conn_handle)
 
     elif event == _IRQ_PERIPHERAL_DISCONNECT:
-        _conn_handle     = None
-        _connected       = False
+        _conn_handle = None
+        _connected = False
         _needs_reconnect = True
-        print('Disconnected.')
+        print("Disconnected.")
 
     elif event == _IRQ_GATTC_SERVICE_RESULT:
         _, start, end, _ = data
@@ -128,6 +130,7 @@ def _irq(event, data):
 
 # ===== サーボ制御ロジック =====
 
+
 def _on_notify(state):
     if len(state) < 6:
         return
@@ -143,8 +146,8 @@ def _on_notify(state):
 
     # スティック → サーボ軸マッピング
     _update_axis(0, -(state[0] - 128) / 128.0)  # Rotate:   LX 反転
-    _update_axis(1,  (state[3] - 128) / 128.0)  # Shoulder: RY 正
-    _update_axis(2,  (state[1] - 128) / 128.0)  # Elbow:    LY 正
+    _update_axis(1, (state[3] - 128) / 128.0)  # Shoulder: RY 正
+    _update_axis(2, (state[1] - 128) / 128.0)  # Elbow:    LY 正
 
     # Hand: L/R ボタン
     if btn & _BTN_L:
@@ -166,8 +169,7 @@ def _update_axis(idx, normalized):
     else:
         return
 
-    _cmd[idx] = max(servos[idx].min_us,
-                    min(servos[idx].max_us, _cmd[idx] + delta))
+    _cmd[idx] = max(servos[idx].min_us, min(servos[idx].max_us, _cmd[idx] + delta))
     servos[idx].set_duty(int(_cmd[idx]))
 
 

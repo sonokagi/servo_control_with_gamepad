@@ -37,29 +37,29 @@ from machine import Pin
 from micropython import const
 
 # BLE IRQ イベント番号
-_IRQ_PERIPHERAL_CONNECT          = const(7)
-_IRQ_PERIPHERAL_DISCONNECT       = const(8)
-_IRQ_GATTC_SERVICE_RESULT        = const(9)
-_IRQ_GATTC_SERVICE_DONE          = const(10)
+_IRQ_PERIPHERAL_CONNECT = const(7)
+_IRQ_PERIPHERAL_DISCONNECT = const(8)
+_IRQ_GATTC_SERVICE_RESULT = const(9)
+_IRQ_GATTC_SERVICE_DONE = const(10)
 _IRQ_GATTC_CHARACTERISTIC_RESULT = const(11)
-_IRQ_GATTC_CHARACTERISTIC_DONE   = const(12)
-_IRQ_GATTC_NOTIFY                = const(18)
+_IRQ_GATTC_CHARACTERISTIC_DONE = const(12)
+_IRQ_GATTC_NOTIFY = const(18)
 
 # Phase 2 で確認済みの接続先
-TARGET_ADDR      = bytes([0x03, 0x12, 0x08, 0x20, 0x34, 0x12])
+TARGET_ADDR = bytes([0x03, 0x12, 0x08, 0x20, 0x34, 0x12])
 TARGET_ADDR_TYPE = const(0)
 
 _FLAG_NOTIFY = const(0x10)
 
-led = Pin('LED', Pin.OUT)
+led = Pin("LED", Pin.OUT)
 
-_conn_handle   = None
-_services      = []   # [(start, end, uuid), ...]
-_service_idx   = 0
-_prev_state    = None   # 前回のレポート（変化検出用）
-_notify_count  = 0      # 計測用カウンタ
-_measuring     = False  # 計測中フラグ（True 中は debug 出力を抑制）
-_ready         = False  # サービス探索完了フラグ
+_conn_handle = None
+_services = []  # [(start, end, uuid), ...]
+_service_idx = 0
+_prev_state = None  # 前回のレポート（変化検出用）
+_notify_count = 0  # 計測用カウンタ
+_measuring = False  # 計測中フラグ（True 中は debug 出力を抑制）
+_ready = False  # サービス探索完了フラグ
 
 
 def _irq(event, data):
@@ -68,30 +68,33 @@ def _irq(event, data):
     if event == _IRQ_PERIPHERAL_CONNECT:
         conn_handle, addr_type, addr = data
         _conn_handle = conn_handle
-        print('Connected! Discovering services...')
+        print("Connected! Discovering services...")
         led.value(1)
         ble.gattc_discover_services(_conn_handle)
 
     elif event == _IRQ_PERIPHERAL_DISCONNECT:
         _conn_handle = None
-        print('Disconnected.')
+        print("Disconnected.")
         led.value(0)
 
     elif event == _IRQ_GATTC_SERVICE_RESULT:
         conn_handle, start, end, uuid = data
         _services.append((start, end, uuid))
-        print('  Service: uuid={} handles=[{}-{}]'.format(uuid, start, end))
+        print("  Service: uuid={} handles=[{}-{}]".format(uuid, start, end))
 
     elif event == _IRQ_GATTC_SERVICE_DONE:
-        print('({} services found)'.format(len(_services)))
+        print("({} services found)".format(len(_services)))
         _service_idx = 0
         _discover_next_service()
 
     elif event == _IRQ_GATTC_CHARACTERISTIC_RESULT:
         conn_handle, def_handle, value_handle, properties, uuid = data
         has_notify = bool(properties & _FLAG_NOTIFY)
-        print('  Char: uuid={} value_handle={} notify={}'.format(
-            uuid, value_handle, has_notify))
+        print(
+            "  Char: uuid={} value_handle={} notify={}".format(
+                uuid, value_handle, has_notify
+            )
+        )
 
     elif event == _IRQ_GATTC_CHARACTERISTIC_DONE:
         _service_idx += 1
@@ -117,32 +120,35 @@ def _discover_next_service():
 
 def _print_report(handle, state):
     if len(state) < 7:
-        print('h={} raw={}'.format(handle, [hex(b) for b in state]))
+        print("h={} raw={}".format(handle, [hex(b) for b in state]))
         return
 
     # 生バイト（10進）
-    raw = ' '.join('{:3d}'.format(b) for b in state[:7])
+    raw = " ".join("{:3d}".format(b) for b in state[:7])
 
     # 解釈値
-    lx   = state[0] - 128
-    ly   = state[1] - 128
-    rx   = state[2] - 128
-    ry   = state[3] - 128
-    btn  = state[5]
+    lx = state[0] - 128
+    ly = state[1] - 128
+    rx = state[2] - 128
+    ry = state[3] - 128
+    btn = state[5]
     btn2 = state[6]
-    l    = bool(btn & 0x40)
-    r    = bool(btn & 0x80)
-    b    = bool(btn & 0x02)
+    l = bool(btn & 0x40)
+    r = bool(btn & 0x80)
+    b = bool(btn & 0x02)
 
-    print('Raw:[{}]  LX={:4d} LY={:4d} RX={:4d} RY={:4d}  L={} R={} B={}'.format(
-        raw, lx, ly, rx, ry, int(l), int(r), int(b)))
+    print(
+        "Raw:[{}]  LX={:4d} LY={:4d} RX={:4d} RY={:4d}  L={} R={} B={}".format(
+            raw, lx, ly, rx, ry, int(l), int(r), int(b)
+        )
+    )
 
 
 # ----- メイン -----
 
-addr_str = ':'.join('{:02X}'.format(b) for b in TARGET_ADDR)
-print('Connecting to ZM T-12 ({}) ...'.format(addr_str))
-print('Put COWBOX T-12 into pairing mode: hold X + HOME')
+addr_str = ":".join("{:02X}".format(b) for b in TARGET_ADDR)
+print("Connecting to ZM T-12 ({}) ...".format(addr_str))
+print("Put COWBOX T-12 into pairing mode: hold X + HOME")
 print()
 
 ble = bluetooth.BLE()
@@ -155,23 +161,30 @@ MEASURE_SEC = 5
 
 while True:
     if _ready:
-        _ready    = False
+        _ready = False
         _measuring = True
         _notify_count = 0
         print()
-        print('=== Notify レート計測中（{}秒）... スティックを動かしてください ==='.format(MEASURE_SEC))
+        print(
+            "=== Notify レート計測中（{}秒）... スティックを動かしてください ===".format(
+                MEASURE_SEC
+            )
+        )
         utime.sleep_ms(MEASURE_SEC * 1000)
-        count      = _notify_count
+        count = _notify_count
         _measuring = False
         if count > 0:
             avg_ms = MEASURE_SEC * 1000 / count
-            print('受信数: {}  平均間隔: {:.1f}ms  レート: {:.1f}Hz'.format(
-                count, avg_ms, 1000 / avg_ms))
+            print(
+                "受信数: {}  平均間隔: {:.1f}ms  レート: {:.1f}Hz".format(
+                    count, avg_ms, 1000 / avg_ms
+                )
+            )
         else:
-            print('notify なし（ゲームパッドを操作してください）')
+            print("notify なし（ゲームパッドを操作してください）")
         print()
-        print('=== デバッグモード ===')
-        print('Byte:  [ 0   1   2   3   4   5   6 ]')
-        print('       [ LX  LY  RX  RY  PAD BTN BTN2]')
+        print("=== デバッグモード ===")
+        print("Byte:  [ 0   1   2   3   4   5   6 ]")
+        print("       [ LX  LY  RX  RY  PAD BTN BTN2]")
         print()
     utime.sleep_ms(100)
