@@ -11,19 +11,19 @@ class Servo:
     PWM_FREQ = 50  # 50Hz = 20ms 周期
 
     def __init__(self, pin, initial_duty_us, min_duty_us, max_duty_us, speed_us):
-        self._pwm        = PWM(pin)
-        self._min_us     = min_duty_us
-        self._max_us     = max_duty_us
-        self._speed_us   = speed_us  # 1 周期 (20ms) あたりの最大変化量
-        self._cmd_us     = initial_duty_us
-        self._out_us     = initial_duty_us
-        self.initial_us  = initial_duty_us  # reset() の参照用
+        self._pwm       = PWM(pin)
+        self.min_us     = min_duty_us
+        self.max_us     = max_duty_us
+        self._speed_us  = speed_us  # 1 周期 (20ms) あたりの最大変化量
+        self._cmd_us    = initial_duty_us
+        self._out_us    = initial_duty_us
+        self.initial_us = initial_duty_us  # reset() の参照用
         self._pwm.freq(Servo.PWM_FREQ)
         self.update()
 
     def set_duty(self, duty_us):
         """目標 Duty 値をリミットして格納する（PWM 出力は update() で反映）。"""
-        self._cmd_us = max(self._min_us, min(self._max_us, duty_us))
+        self._cmd_us = max(self.min_us, min(self.max_us, duty_us))
 
     def duty(self):
         """現在の目標 Duty 値を返す。"""

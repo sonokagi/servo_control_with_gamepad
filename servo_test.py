@@ -51,18 +51,18 @@ print()
 
 for i, (s, name) in enumerate(zip(servos, NAMES)):
     print('[{}] {} initial={} min={} max={}'.format(
-        i, name, s.initial_us, s._min_us, s._max_us))
+        i, name, s.initial_us, s.min_us, s.max_us))
 
-    print('      → max  ({})'.format(s._max_us))
-    s.set_duty(s._max_us)
+    print('      → max  ({})'.format(s.max_us))
+    s.set_duty(s.max_us)
     _wait(1500)
 
     print('      → initial ({})'.format(s.initial_us))
     s.reset()
     _wait(800)
 
-    print('      → min  ({})'.format(s._min_us))
-    s.set_duty(s._min_us)
+    print('      → min  ({})'.format(s.min_us))
+    s.set_duty(s.min_us)
     _wait(1500)
 
     print('      → initial ({})'.format(s.initial_us))

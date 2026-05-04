@@ -35,6 +35,11 @@ servo_control_with_gamepad/
 ├── CLAUDE.md                              # 本ファイル
 ├── .gitignore
 ├── .markdownlint.json
+├── main.py                                # BLE 接続 + サーボ制御のメインループ
+├── servo.py                               # Servo / ToggleLed クラス
+├── servo_test.py                          # サーボ単体動作確認スクリプト（Phase 4）
+├── scan.py                                # BLE スキャン確認スクリプト（Phase 2）
+├── hid_debug.py                           # HID レポート確認スクリプト（Phase 3）
 ├── docs/
 │   └── plan.md                            # 開発フェーズ計画・仕様・疑問点リスト
 ├── prompts/
@@ -48,30 +53,6 @@ servo_control_with_gamepad/
         ├── pico_pong.py                   # サンプルアプリ
         └── ssd1306.py                     # OLED ドライバ
 ```
-
-### 今後作成するファイル（Phase 5）
-
-```text
-servo_control_with_gamepad/
-├── main.py        # BLE 接続 + サーボ制御のメインループ
-└── blegamepad.py  # BLE ゲームパッドクラス（reference/sample/blegamepad.py を改変）
-```
-
----
-
-## 開発フェーズ
-
-| フェーズ    | 内容                               | 状態    |
-| ----------- | ---------------------------------- | ------- |
-| **Phase 0** | 開発環境・Thonny・MicroPython 準備 | ✅ 完了 |
-| **Phase 1** | サンプルコード参照・解析           | ✅ 完了 |
-| **Phase 2** | BLE スキャン・デバイス確認         | ✅ 完了 |
-| **Phase 3** | HID レポート実機確認               | ✅ 完了 |
-| **Phase 4** | servo.py 作成                      | ✅ 完了 |
-| **Phase 5** | main.py 作成（BLE + サーボ統合）   | 未着手  |
-| **Phase 6** | 調整・最終確認                     | 未着手  |
-
-詳細は [docs/plan.md](docs/plan.md) を参照。
 
 ---
 
