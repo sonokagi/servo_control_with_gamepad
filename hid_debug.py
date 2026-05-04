@@ -53,14 +53,17 @@ _FLAG_NOTIFY = const(0x10)
 
 led = Pin('LED', Pin.OUT)
 
-_conn_handle  = None
-_services     = []   # [(start, end, uuid), ...]
-_service_idx  = 0
-_prev_state   = None  # 前回のレポート（変化検出用）
+_conn_handle   = None
+_services      = []   # [(start, end, uuid), ...]
+_service_idx   = 0
+_prev_state    = None   # 前回のレポート（変化検出用）
+_notify_count  = 0      # 計測用カウンタ
+_measuring     = False  # 計測中フラグ（True 中は debug 出力を抑制）
+_ready         = False  # サービス探索完了フラグ
 
 
 def _irq(event, data):
-    global _conn_handle, _services, _service_idx, _prev_state
+    global _conn_handle, _services, _service_idx, _prev_state, _notify_count, _ready
 
     if event == _IRQ_PERIPHERAL_CONNECT:
         conn_handle, addr_type, addr = data
@@ -95,23 +98,21 @@ def _irq(event, data):
         _discover_next_service()
 
     elif event == _IRQ_GATTC_NOTIFY:
+        _notify_count += 1
         conn_handle, value_handle, notify_data = data
         state = list(notify_data)
-        if state != _prev_state:
+        if not _measuring and state != _prev_state:
             _prev_state = state
             _print_report(value_handle, state)
 
 
 def _discover_next_service():
+    global _ready
     if _service_idx < len(_services):
         start, end, uuid = _services[_service_idx]
         ble.gattc_discover_characteristics(_conn_handle, start, end)
     else:
-        print()
-        print('=== Ready. Move sticks and press buttons. ===')
-        print('Byte:  [ 0   1   2   3   4   5   6 ]')
-        print('       [ LX  LY  RX  RY  PAD BTN BTN2]')
-        print()
+        _ready = True
 
 
 def _print_report(handle, state):
@@ -150,5 +151,27 @@ ble.irq(_irq)
 ble.gap_connect(TARGET_ADDR_TYPE, TARGET_ADDR)
 
 # 接続・操作確認が終わるまで待機
+MEASURE_SEC = 5
+
 while True:
+    if _ready:
+        _ready    = False
+        _measuring = True
+        _notify_count = 0
+        print()
+        print('=== Notify レート計測中（{}秒）... スティックを動かしてください ==='.format(MEASURE_SEC))
+        utime.sleep_ms(MEASURE_SEC * 1000)
+        count      = _notify_count
+        _measuring = False
+        if count > 0:
+            avg_ms = MEASURE_SEC * 1000 / count
+            print('受信数: {}  平均間隔: {:.1f}ms  レート: {:.1f}Hz'.format(
+                count, avg_ms, 1000 / avg_ms))
+        else:
+            print('notify なし（ゲームパッドを操作してください）')
+        print()
+        print('=== デバッグモード ===')
+        print('Byte:  [ 0   1   2   3   4   5   6 ]')
+        print('       [ LX  LY  RX  RY  PAD BTN BTN2]')
+        print()
     utime.sleep_ms(100)
