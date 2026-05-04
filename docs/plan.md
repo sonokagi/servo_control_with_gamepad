@@ -8,7 +8,7 @@
 | **Phase 1** | サンプルコード参照                | サンプルをダウンロードして内容を理解       | ✅ 完了   |
 | **Phase 2** | BLE スキャン・デバイス確認        | COWBOX T-12 が Pico W から検出できる       | ✅ 完了   |
 | **Phase 3** | HID レポート実機確認              | 各軸・ボタンのバイト位置が実機で確認できる | ✅ 完了   |
-| **Phase 4** | servo.py 作成                     | サーボが単体で動作確認できる               | 🔲 未着手 |
+| **Phase 4** | servo.py 作成                     | サーボが単体で動作確認できる               | ✅ 完了   |
 | **Phase 5** | main.py 作成（BLE + サーボ統合）  | ゲームパッドでサーボが動く                 | 🔲 未着手 |
 | **Phase 6** | 調整・最終確認                    | 全機能が仕様通りに動作する                 | 🔲 未着手 |
 
@@ -147,13 +147,26 @@ COWBOX T-12 のペアリングモードへの移行: **X ボタン + HOME ボタ
 
 ---
 
-### Phase 4: servo.py 作成
+### Phase 4: servo.py 作成 ✅
 
-`reference/multi_servo.py` から `Servo` / `ToggleLed` クラスをそのまま `servo.py` として切り出す。
+`reference/multi_servo.py` の `Servo` / `ToggleLed` クラスを `servo.py` として切り出す。
 
-**動作確認**:
+`reference/multi_servo.py` からの主な変更点:
 
-- Thonny シェルから `servo.py` をインポートして、サーボが指定の角度に動くことを確認
+- `set_duty()` のリミット処理を `max()/min()` で 1 行に簡略化
+- `reset()` メソッドを追加（B ボタンで初期位置に即時戻す用）
+- `initial_us` 属性を追加（`reset()` の参照用）
+- `ToggleLed` に `on()` / `off()` を追加（接続状態表示用）
+- メインループ・`is_int()` など、`main.py` に属するコードは含めない
+
+`servo_test.py` で全サーボの動作確認済み（使い方は `servo_test.py` 冒頭コメント参照）：
+
+| サーボ        | ピン | 動作 | IO 割り当て |
+| ------------- | ---- | ---- | ----------- |
+| 旋回 (Rotate) | GP14 | ✅   | ✅ 確認済み |
+| 肩 (Shoulder) | GP15 | ✅   | ✅ 確認済み |
+| 肘 (Elbow)    | GP17 | ✅   | ✅ 確認済み |
+| 手首 (Hand)   | GP16 | ✅   | ✅ 確認済み |
 
 ---
 

@@ -17,7 +17,7 @@
 
 COWBOX Android Controller T-12（BLE HID ゲームパッド）を Raspberry Pi Pico W に直接 BLE 接続し、4ch サーボ（ロボットアーム）を MicroPython で制御する。
 
-```
+```text
 COWBOX T-12 (BLE Peripheral / HID)
     ↕ Bluetooth 4.0 BLE
 Raspberry Pi Pico W (BLE Central)
@@ -30,7 +30,7 @@ Raspberry Pi Pico W (BLE Central)
 
 ## ファイル構成
 
-```
+```text
 servo_control_with_gamepad/
 ├── CLAUDE.md                              # 本ファイル
 ├── .gitignore
@@ -49,12 +49,11 @@ servo_control_with_gamepad/
         └── ssd1306.py                     # OLED ドライバ
 ```
 
-### 今後作成するファイル（Phase 4〜5）
+### 今後作成するファイル（Phase 5）
 
-```
+```text
 servo_control_with_gamepad/
 ├── main.py        # BLE 接続 + サーボ制御のメインループ
-├── servo.py       # Servo / ToggleLed クラス（reference/multi_servo.py から切り出し）
 └── blegamepad.py  # BLE ゲームパッドクラス（reference/sample/blegamepad.py を改変）
 ```
 
@@ -62,15 +61,15 @@ servo_control_with_gamepad/
 
 ## 開発フェーズ
 
-| フェーズ    | 内容                             | 状態    |
-| ----------- | -------------------------------- | ------- |
+| フェーズ    | 内容                               | 状態    |
+| ----------- | ---------------------------------- | ------- |
 | **Phase 0** | 開発環境・Thonny・MicroPython 準備 | ✅ 完了 |
-| **Phase 1** | サンプルコード参照・解析         | ✅ 完了 |
-| **Phase 2** | BLE スキャン・デバイス確認       | 未着手  |
-| **Phase 3** | HID レポート実機確認             | 未着手  |
-| **Phase 4** | servo.py 作成                    | 未着手  |
-| **Phase 5** | main.py 作成（BLE + サーボ統合） | 未着手  |
-| **Phase 6** | 調整・最終確認                   | 未着手  |
+| **Phase 1** | サンプルコード参照・解析           | ✅ 完了 |
+| **Phase 2** | BLE スキャン・デバイス確認         | ✅ 完了 |
+| **Phase 3** | HID レポート実機確認               | ✅ 完了 |
+| **Phase 4** | servo.py 作成                      | ✅ 完了 |
+| **Phase 5** | main.py 作成（BLE + サーボ統合）   | 未着手  |
+| **Phase 6** | 調整・最終確認                     | 未着手  |
 
 詳細は [docs/plan.md](docs/plan.md) を参照。
 
@@ -90,7 +89,7 @@ servo_control_with_gamepad/
 
 ### HID レポート構造（実機確認済み）
 
-```
+```text
 Byte 0 : LX axis  (0〜255, 中立=128)
 Byte 1 : LY axis  (0〜255, 中立=128)
 Byte 2 : RX axis  (0〜255, 中立=128)  ※ 今回未使用
@@ -102,14 +101,14 @@ Byte 6 : ボタン上位  ※ 今回未使用
 
 ### スティック → サーボ マッピング
 
-| 操作           | サーボ          | 備考          |
-| -------------- | --------------- | ------------- |
-| 左スティック LX | Rotate (GP14)   | 反転          |
-| 左スティック LY | Elbow (GP17)    | 正            |
-| 右スティック RY | Shoulder (GP15) | 正            |
-| L ボタン       | Hand (GP16)     | 閉じる        |
-| R ボタン       | Hand (GP16)     | 開く          |
-| B ボタン       | 全サーボ        | 初期位置リセット |
+| 操作            | サーボ          | 備考             |
+| --------------- | --------------- | ---------------- |
+| 左スティック LX | Rotate (GP14)   | 反転             |
+| 左スティック LY | Elbow (GP17)    | 正               |
+| 右スティック RY | Shoulder (GP15) | 正               |
+| L ボタン        | Hand (GP16)     | 閉じる           |
+| R ボタン        | Hand (GP16)     | 開く             |
+| B ボタン        | 全サーボ        | 初期位置リセット |
 
 ### サーボパラメータ
 
