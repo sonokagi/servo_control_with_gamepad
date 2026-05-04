@@ -37,9 +37,10 @@ servo_control_with_gamepad/
 ├── .markdownlint.json
 ├── main.py                                # BLE 接続 + サーボ制御のメインループ
 ├── servo.py                               # Servo / ToggleLed クラス
-├── servo_test.py                          # サーボ単体動作確認スクリプト（Phase 4）
-├── scan.py                                # BLE スキャン確認スクリプト（Phase 2）
-├── hid_debug.py                           # HID レポート確認スクリプト（Phase 3）
+├── tools/
+│   ├── scan.py                            # BLE スキャン確認スクリプト（Phase 2）
+│   ├── hid_debug.py                       # HID レポート確認・Notify レート計測（Phase 3/6）
+│   └── servo_test.py                      # サーボ単体動作確認スクリプト（Phase 4）
 ├── docs/
 │   └── plan.md                            # 開発フェーズ計画・仕様・疑問点リスト
 ├── prompts/
