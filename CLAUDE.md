@@ -13,50 +13,6 @@
 
 ---
 
-## プロジェクト概要
-
-COWBOX Android Controller T-12（BLE HID ゲームパッド）を Raspberry Pi Pico W に直接 BLE 接続し、4ch サーボ（ロボットアーム）を MicroPython で制御する。
-
-```text
-COWBOX T-12 (BLE Peripheral / HID)
-    ↕ Bluetooth 4.0 BLE
-Raspberry Pi Pico W (BLE Central)
-    → 4ch サーボ (PWM)
-```
-
-**旧構成との違い**: PC（Processing3）を介さず、Pico W と BLE ゲームパッドを直接接続する。
-
----
-
-## ファイル構成
-
-```text
-servo_control_with_gamepad/
-├── CLAUDE.md                              # 本ファイル
-├── .gitignore
-├── .markdownlint.json
-├── main.py                                # BLE 接続 + サーボ制御のメインループ
-├── servo.py                               # Servo / ToggleLed クラス
-├── tools/
-│   ├── scan.py                            # BLE スキャン確認スクリプト（Phase 2）
-│   ├── hid_debug.py                       # HID レポート確認・Notify レート計測（Phase 3/6）
-│   └── servo_test.py                      # サーボ単体動作確認スクリプト（Phase 4）
-├── docs/
-│   └── plan.md                            # 開発フェーズ計画・仕様・疑問点リスト
-├── prompts/
-│   └── 作成依頼.md                        # 依頼仕様書
-└── reference/
-    ├── multi_servo.py                     # 旧 Pico 用サーボ制御コード（流用元）
-    ├── serial_servo_control_from_gamepad.pde  # 旧 PC 用制御コード（流用元）
-    └── sample/                            # DHA の電子工作教室 公開サンプル（git 除外）
-        ├── blegamepad.py                  # BLE ゲームパッドクラス
-        ├── bletest.py                     # BLE スキャン・接続テスト
-        ├── pico_pong.py                   # サンプルアプリ
-        └── ssd1306.py                     # OLED ドライバ
-```
-
----
-
 ## 技術方針
 
 ### BLE ライブラリ
@@ -68,49 +24,6 @@ servo_control_with_gamepad/
 
 `machine.Timer`（20ms 周期）の割り込みでサーボの `update()` を呼ぶ方式。  
 `reference/multi_servo.py` の `Servo` / `ToggleLed` クラスをそのまま流用する。
-
-### HID レポート構造（実機確認済み）
-
-```text
-Byte 0 : LX axis  (0〜255, 中立=128)
-Byte 1 : LY axis  (0〜255, 中立=128)
-Byte 2 : RX axis  (0〜255, 中立=128)  ※ 今回未使用
-Byte 3 : RY axis  (0〜255, 中立=128)
-Byte 4 : D-pad    (未操作=0xFF, 反転論理)  ※ 今回未使用
-Byte 5 : ボタン下位  B=bit1(0x02)  L=bit6(0x40)  R=bit7(0x80)
-Byte 6 : ボタン上位  ※ 今回未使用
-```
-
-### スティック → サーボ マッピング
-
-| 操作            | サーボ          | 備考             |
-| --------------- | --------------- | ---------------- |
-| 左スティック LX | Rotate (GP14)   | 反転             |
-| 左スティック LY | Elbow (GP17)    | 正               |
-| 右スティック RY | Shoulder (GP15) | 正               |
-| L ボタン        | Hand (GP16)     | 左回転           |
-| R ボタン        | Hand (GP16)     | 右回転           |
-| B ボタン        | 全サーボ        | 初期位置リセット |
-
-### サーボパラメータ
-
-| サーボ        | ピン | 初期値 [us] | min [us] | max [us] | speed [us/20ms] |
-| ------------- | ---- | ----------- | -------- | -------- | --------------- |
-| 旋回 (Rotate) | GP14 | 1520        | 620      | 2400     | 12              |
-| 肩 (Shoulder) | GP15 | 1540        | 920      | 2020     | 9               |
-| 肘 (Elbow)    | GP17 | 1490        | 820      | 2020     | 9               |
-| 手首 (Hand)   | GP16 | 1600        | 750      | 2450     | 36              |
-
-LED: GP18
-
----
-
-## COWBOX T-12 操作メモ
-
-- **ペアリングモード**: X ボタン + HOME ボタン 長押し
-- **BLE アドバタイジング名**: `ZM T-12`
-- **MAC アドレス**: `03:12:08:20:34:12`
-- **アドレスタイプ**: `0`
 
 ---
 

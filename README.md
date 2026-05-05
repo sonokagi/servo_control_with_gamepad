@@ -78,6 +78,28 @@ Pico W に電源を入れると自動で接続を開始する。
 
 ---
 
+## ファイル構成
+
+```text
+servo_control_with_gamepad/
+├── main.py              # BLE 接続 + サーボ制御のメインループ
+├── servo.py             # Servo / ToggleLed クラス
+├── tools/               # 開発・デバッグ用スクリプト（本番動作には不要）
+│   ├── scan.py              # BLE スキャン確認
+│   ├── hid_debug.py         # HID レポート確認・Notify レート計測
+│   └── servo_test.py        # サーボ単体動作確認
+├── docs/
+│   ├── plan.md              # 開発フェーズ計画・仕様記録
+│   └── zm_t12.md            # ZM T-12 コントローラ解析メモ
+├── reference/
+│   ├── multi_servo.py       # 旧 Pico 用サーボ制御コード（流用元）
+│   └── serial_servo_control_from_gamepad.pde  # 旧 PC 用制御コード（流用元）
+└── prompts/
+    └── 作成依頼.md          # 依頼仕様書
+```
+
+---
+
 ## カスタマイズ
 
 設定値は `main.py` の冒頭にまとまっている。
@@ -127,22 +149,6 @@ CMD_THRESH = 0.375  # スティックの遊び（0.0〜1.0）
 ```
 
 スティック中立付近のノイズで誤動作する場合は値を大きくする。
-
----
-
-## ファイル構成
-
-```text
-servo_control_with_gamepad/
-├── main.py          # BLE 接続 + サーボ制御のメインループ
-├── servo.py         # Servo / ToggleLed クラス
-├── tools/           # 開発・デバッグ用スクリプト（本番動作には不要）
-│   ├── scan.py          # BLE スキャン確認
-│   ├── hid_debug.py     # HID レポート確認・Notify レート計測
-│   └── servo_test.py    # サーボ単体動作確認
-└── docs/
-    └── plan.md      # 開発フェーズ計画・仕様記録
-```
 
 ---
 

@@ -11,7 +11,7 @@
 | **Phase 4** | servo.py 作成                     | サーボが単体で動作確認できる               | ✅ 完了   |
 | **Phase 5** | main.py 作成（BLE + サーボ統合）  | ゲームパッドでサーボが動く                 | ✅ 完了   |
 | **Phase 6** | 調整・最終確認                    | 全機能が仕様通りに動作する                 | ✅ 完了   |
-| **Phase 7** | GitHub 公開準備                   | リポジトリが公開できる状態になる           | 🔲 未着手 |
+| **Phase 7** | GitHub 公開準備                   | リポジトリが公開できる状態になる           | ✅ 完了   |
 
 ---
 
@@ -223,7 +223,7 @@ servo_control_with_gamepad/
     └── servo_test.py  # 開発用: サーボ単体動作確認
 ```
 
-#### 7-2. README.md の作成
+#### 7-2. README.md の作成 ✅
 
 GitHub のトップページに表示される公開向けドキュメント。  
 CLAUDE.md / plan.md との役割分担:
@@ -242,14 +242,18 @@ README.md に記載する内容:
 4. 操作方法（スティック・ボタン割り当て）
 5. ライセンス
 
-#### 7-3. 重複情報の整理
+#### 7-3. 重複情報の整理 ✅
 
-README.md 作成にあわせて、CLAUDE.md / plan.md の重複を以下の方針で整理する:
+**ファイルの役割分担**:
 
-- **サーボパラメータ表**: README.md をメインに。CLAUDE.md はクイックリファレンスとして残す
-- **スティック → サーボ マッピング**: README.md（操作説明）と CLAUDE.md（技術参照）の両方に置く
-- **HID レポート構造**: CLAUDE.md と plan.md に残す。README.md には記載しない（実装詳細のため）
-- **フェーズ履歴**: plan.md のみ。README.md / CLAUDE.md には不要
+| ファイル           | 役割                                                        |
+| ------------------ | ----------------------------------------------------------- |
+| `README.md`        | ユーザー向け（サーボ設定・操作方法・ファイル構成の一次情報）|
+| `docs/zm_t12.md`   | ZM T-12 解析結果（HID構造・Notifyレート・デバイス情報）     |
+| `CLAUDE.md`        | AI 固有情報のみ（絶対ルール・技術方針・サンプルコード注意） |
+| `docs/plan.md`     | 開発ログ（フェーズ記録の文脈で記述された内容は維持）        |
+
+上記の役割分担に従い、各ファイルの重複情報を整理した。
 
 ---
 
@@ -323,19 +327,25 @@ Pico W 側の制御プログラムは MicroPython のみで実装する。
 
 ## 4. 実装方針
 
-### ファイル構成（新規作成）
+### ファイル構成（実装済み）
+
+`blegamepad.py` は別ファイル化せず `main.py` に集約（Phase 5 で決定）。
 
 ```text
 servo_control_with_gamepad/
 ├── main.py        # BLE 接続 + サーボ制御のメインループ
 ├── servo.py       # Servo / ToggleLed クラス
-├── blegamepad.py  # BLE ゲームパッドクラス（サンプルを改変）
+├── tools/         # 開発・デバッグ用スクリプト（Phase 7 で移動）
+│   ├── scan.py
+│   ├── hid_debug.py
+│   └── servo_test.py
 ├── docs/
-│   └── plan.md
+│   ├── plan.md
+│   └── zm_t12.md  # ZM T-12 コントローラ解析メモ
 └── reference/
     ├── multi_servo.py
     ├── serial_servo_control_from_gamepad.pde
-    └── sample/    # 参照用サンプル（変更しない）
+    └── sample/    # 参照用サンプル（git 除外）
 ```
 
 ### 処理フロー
@@ -346,9 +356,9 @@ servo_control_with_gamepad/
  └─ BLE 初期化・IRQ 登録
  └─ スキャン開始（LED 高速点滅）
       └─ COWBOX T-12 を発見
-           └─ BLE 接続（LED 低速点滅）
+           └─ BLE 接続（LED 点灯）
                 └─ GATT サービス探索・HID Input Characteristic 取得
-                     └─ Notify 有効化（LED 点灯）
+                     └─ Notify 受信開始
                           └─ IRQ ループ:
                                - HID Notify 受信 → スティック/ボタン値を解析
                                - 不感帯処理 (CMD_THRESH)
@@ -377,8 +387,8 @@ servo_control_with_gamepad/
 | 左スティック 左右 (LX) | Byte 0（中立=128）             | Rotate (GP14)   | 反転（左 → 正方向） |
 | 左スティック 上下 (LY) | Byte 1（中立=128）             | Elbow (GP17)    | 正                  |
 | 右スティック 上下 (RY) | Byte 3（中立=128）             | Shoulder (GP15) | 正                  |
-| L ボタン               | Byte 5 bit6 (0x40)             | Hand (GP16)     | 閉じる方向          |
-| R ボタン               | Byte 5 bit7 (0x80)             | Hand (GP16)     | 開く方向            |
+| L ボタン               | Byte 5 bit6 (0x40)             | Hand (GP16)     | 左回転              |
+| R ボタン               | Byte 5 bit7 (0x80)             | Hand (GP16)     | 右回転              |
 | B ボタン               | Byte 5 bit1 (0x02)             | 全サーボ        | 初期位置にリセット  |
 
 ---
@@ -388,19 +398,7 @@ servo_control_with_gamepad/
 COWBOX T-12 は BLE 4.0 HID (HOGP: HID over GATT Profile) を使用。  
 Phase 3（`hid_debug.py`）にて実機確認済み。
 
-```text
-Byte 0 : LX axis  (0〜255, 中立=128) → 正規化: byte - 128
-Byte 1 : LY axis  (0〜255, 中立=128)
-Byte 2 : RX axis  (0〜255, 中立=128)  ※ 今回未使用
-Byte 3 : RY axis  (0〜255, 中立=128)
-Byte 4 : D-pad    (未操作=0xFF, 各方向で対応ビットが 0 になる反転論理)  ※ 今回未使用
-Byte 5 : ボタン下位 byte
-            bit1(0x02) = B  ← リセット
-            bit6(0x40) = L  ← Hand 閉じる
-            bit7(0x80) = R  ← Hand 開く
-            (他ボタンは今回未使用)
-Byte 6 : ボタン上位 byte  ※ 今回未使用
-```
+→ HID バイトレイアウト・デバイス情報は [docs/zm_t12.md](zm_t12.md) 参照。
 
 ### スティック値の正規化
 
@@ -418,11 +416,7 @@ Phase 3 実測で ZM T-12 のスティックは生値 0〜255 のフルレンジ
 
 Phase 6 実測（`hid_debug.py` 計測モード）による ZM T-12 の Notify 特性:
 
-| 操作状態                     | Notify  | 平均間隔  | レート   |
-| ---------------------------- | ------- | --------- | -------- |
-| 何も触れない（アイドル）     | なし    | -         | 0 Hz     |
-| スティック倒し続け / ボタン押し続け | あり | 約 32ms | 約 31 Hz |
-| スティックを動かし続け       | あり    | 約 31ms   | 約 32 Hz |
+→ 計測結果テーブルは [docs/zm_t12.md](zm_t12.md) 参照。
 
 **特性まとめ**: ZM T-12 は**イベント駆動型**。入力がある間だけ約 30Hz で Notify を送信し、入力がなくなると停止する。
 
