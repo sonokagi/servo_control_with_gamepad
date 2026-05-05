@@ -125,4 +125,4 @@ for addr, (addr_type, name, rssi) in _found.items():
     )
 
 print()
-print('Record "Addr" and "type" for Phase 3 connection.')
+print('Record "Addr" and "type" in main.py TARGET_ADDR.')
